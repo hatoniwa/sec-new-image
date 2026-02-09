@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>百人一首 秘密保持データ管理</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #eef; padding: 10px; }
+        #stage { 
+            position: relative; width: 315px; height: 315px; /* 45px * 7 */
+            margin: 15px auto; background: #fff; overflow: hidden; border: 3px solid #444;
+        }
+        .piece { 
+            position: absolute; width: 45px; height: 45px;
+            background-size: 315px 315px;
+            transition: transform 2.5s ease-in-out;
+        }
+        .controls { background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        select, button { padding: 10px; font-size: 16px; margin: 5px; cursor: pointer; }
+        textarea { width: 90%; height: 80px; margin-top: 10px; font-size: 12px; }
+        .label { font-weight: bold; color: #444; }
+    </style>
+</head>
+<body>
+
+<div class="controls">
+    <div class="label">1. 画像を選択</div>
+    <select id="imgPicker" onchange="initGrid()">
+        <option value="A01.jpg">A01 - 小町 (art)</option>
+        <option value="A02.jpg">A02 - 小町 (text)</option>
+        <option value="A03.jpg">A03 - 良選 (art)</option>
+        <option value="A04.jpg">A04 - 良選 (text)</option>
+        <option value="A05.jpg">A05 - 素性 (art)</option>
+        <option value="A06.jpg">A06 - 素性 (text)</option>
+        <option value="A07.jpg">A07 - 赤人 (art)</option>
+        <option value="A08.jpg">A08 - 赤人 (text)</option>
+    </select>
+
+    <div id="stage"></div>
+
+    <div class="label">2. データの作成</div>
+    <button onclick="scatter()">ゆっくり分散</button>
+    <button onclick="exportData()" style="background: #ff9800; color:white;">★ この瞬間を確定</button>
+</div>
+
+<textarea id="dataBox" placeholder="ここに確定データが出ます。または再生したいデータをここに貼ってください。"></textarea>
+
+<div class="controls" style="margin-top:15px; border-top: 2px solid #ccc;">
+    <div class="label">3. データの再現</div>
+    <button onclick="replayFromData()" style="background: #4caf50; color:white; width: 80%;">データから再生（収束）</button>
+</div>
+
+<script>
+    const stage = document.getElementById('stage');
+    const dataBox = document.getElementById('dataBox');
+    const imgPicker = document.getElementById('imgPicker');
+    let pieces = [];
+
+    // 選択された画像でグリッドを初期化
+    function initGrid() {
+        const imgUrl = imgPicker.value;
+        stage.innerHTML = '';
+        pieces = [];
+        for (let i = 0; i < 49; i++) {
+            const p = document.createElement('div');
+            p.className = 'piece';
+            p.style.backgroundImage = `url(${imgUrl})`;
+            const x = (i % 7) * 45;
+            const y = Math.floor(i / 7) * 45;
+            p.style.backgroundPosition = `-${x}px -${y}px`;
+            p.style.left = x + 'px';
+            p.style.top = y + 'px';
+            p.style.transform = `translate(0px, 0px) rotate(0deg)`;
+            stage.appendChild(p);
+            pieces.push(p);
+        }
+    }
+
+    // 分散アニメーション
+    function scatter() {
+        pieces.forEach(p => {
+            const rx = Math.random() * 500 - 250;
+            const ry = Math.random() * 500 - 250;
+            const rr = Math.random() * 720 - 360;
+            p.style.transform = `translate(${rx}px, ${ry}px) rotate(${rr}deg)`;
+        });
+    }
+
+    // データの確定・書き出し
+    function exportData() {
+        const currentData = pieces.map(p => p.style.transform);
+        dataBox.value = JSON.stringify(currentData);
+        alert(imgPicker.options[imgPicker.selectedIndex].text + " のデータを確定しました。枠内のテキストを保存してください。");
+    }
+
+    // データから再生
+    function replayFromData() {
+        if (!dataBox.value) return alert("データボックスにデータを貼り付けてください。");
+        const posList = JSON.parse(dataBox.value);
+
+        // 瞬時にバラバラ状態を再現
+        pieces.forEach((p, i) => {
+            p.style.transition = 'none'; 
+            p.style.transform = posList[i];
+        });
+
+        // 収束開始
+        setTimeout(() => {
+            pieces.forEach(p => {
+                p.style.transition = 'transform 4s ease-in-out'; // ここで時間を制御（4秒かけて戻る）
+                p.style.transform = `translate(0px, 0px) rotate(0deg)`;
+            });
+        }, 150);
+    }
+
+    // 最初に一回実行
+    initGrid();
+</script>
+</body>
+</html>
