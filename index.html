@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>和歌収束システム - hatoniwa</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; margin: 0; padding: 20px; background: #fdfdfd; color: #333; }
+        #stage { 
+            position: relative; width: 315px; height: 315px; 
+            margin: 20px auto; border: 5px solid #444; border-radius: 4px;
+            overflow: hidden; background: #eee; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .piece { 
+            position: absolute; width: 45px; height: 45px;
+            background-size: 315px 315px; transition: transform 5s ease-in-out;
+        }
+        .controls { 
+            max-width: 400px; margin: 0 auto; padding: 20px; 
+            background: #fff; border: 1px solid #ddd; border-radius: 12px; 
+        }
+        select, textarea, button { width: 100%; margin-top: 12px; font-size: 16px; box-sizing: border-box; }
+        textarea { height: 80px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; }
+        button { 
+            padding: 15px; background: #28a745; color: white; border: none; 
+            border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s;
+        }
+        button:hover { background: #218838; transform: translateY(-2px); }
+        .info { margin-top: 20px; font-size: 12px; color: #666; }
+    </style>
+</head>
+<body>
+
+    <h2>和歌 収束再生システム</h2>
+
+    <div id="stage"></div>
+
+    <div class="controls">
+        <label><small>1. 画像を選択</small></label>
+        <select id="imgPicker" onchange="init()">
+            <option value="A01">A01 - 小町 (art)</option>
+            <option value="A02">A02 - 小町 (text)</option>
+            <option value="A03">A03 - 良選 (art)</option>
+            <option value="A04">A04 - 良選 (text)</option>
+            <option value="A05">A05 - 素性 (art)</option>
+            <option value="A06">A06 - 素性 (text)</option>
+            <option value="A07">A07 - 赤人 (art)</option>
+            <option value="A08">A08 - 赤人 (text)</option>
+        </select>
+
+        <textarea id="dataBox" placeholder="共通の分散コードをここに貼り付けてください"></textarea>
+        <button onclick="play()">魔法を解く（収束）</button>
+    </div>
+
+    <p class="info">hatoniwa project - All rights reserved.</p>
+
+<script>
+    const stage = document.getElementById('stage');
+    let pieces = [];
+    
+    // 同一フォルダ内の画像を参照するため、住所はこれだけでOK！
+    const baseAddress = "./";
+
+    function init() {
+        stage.innerHTML = '';
+        pieces = [];
+        const fileName = document.getElementById('imgPicker').value.toUpperCase() + ".jpg";
+        const imgUrl = baseAddress + fileName;
+
+        for (let i = 0; i < 49; i++) {
+            const p = document.createElement('div');
+            p.className = 'piece';
+            p.style.backgroundImage = `url(${imgUrl})`;
+            p.style.left = (i % 7) * 45 + 'px';
+            p.style.top = Math.floor(i / 7) * 45 + 'px';
+            p.style.backgroundPosition = `-${(i % 7) * 45}px -${Math.floor(i / 7) * 45}px`;
+            p.style.opacity = "0"; 
+            stage.appendChild(p);
+            pieces.push(p);
+        }
+    }
+
+    function play() {
+        try {
+            const input = document.getElementById('dataBox').value.trim();
+            if (!input) return alert("コードを貼ってください");
+            
+            let jsonStr = input;
+            if (!jsonStr.endsWith('}')) jsonStr += '}'; 
+            const data = JSON.parse(jsonStr);
+            const posList = data.positions || (Array.isArray(data) ? data : null);
+
+            if (!posList) throw new Error();
+
+            pieces.forEach((p, i) => {
+                p.style.transition = 'none';
+                p.style.opacity = "1";
+                p.style.transform = posList[i];
+            });
+            
+            setTimeout(() => {
+                pieces.forEach(p => {
+                    p.style.transition = 'transform 5s ease-in-out';
+                    p.style.transform = 'translate(0,0) rotate(0)';
+                });
+            }, 150);
+        } catch (e) { 
+            alert("データの形式が正しくありません。"); 
+        }
+    }
+    init();
+</script>
+</body>
+</html>
