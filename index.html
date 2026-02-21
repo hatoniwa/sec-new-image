@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>和歌収束システム - hatoniwa</title>
     <style>
+<div id="visitor-count" style="position:fixed;bottom:10px;right:10px;color:white;font-size:14px;">
+  Visitors: ...
+</div>
+        
+<script>
+fetch('https://api.countapi.xyz/hit/hatoniwa/sec-new-image')
+  .then(res => res.json())
+  .then(res => {
+    document.getElementById('visitor-count').innerText =
+      'Visitors: ' + res.value;
+  });
+</script>        
         body { font-family: sans-serif; text-align: center; margin: 0; padding: 20px; background: #fdfdfd; color: #333; }
         #stage { 
             position: relative; width: 315px; height: 315px; 
